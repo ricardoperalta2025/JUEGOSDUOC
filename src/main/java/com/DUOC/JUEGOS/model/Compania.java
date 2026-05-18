@@ -11,25 +11,27 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name="generos")
-public class Genero {
+@Table(name="companias")
+public class Compania {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 200)
     private String nombre;
 
-    @Column(nullable = false, length = 200)
-    private String descripcion;
+    @Column(nullable = true, length = 100)
+    private String pais;
 
+    @Column(nullable = true, length = 200)
+    private String sitioWeb;
 
-
+    
 }
 
 
-    // id, nombre, descripcion
+    // id, nombre, pais, sitioWeb

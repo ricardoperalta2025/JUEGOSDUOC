@@ -11,11 +11,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name="generos")
-public class Genero {
+@AllArgsConstructor
+@Entity 
+@Table(name="plataformas")
+public class Plataforma {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,12 +24,10 @@ public class Genero {
     @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Column(nullable = false, length = 200)
-    private String descripcion;
-
-
 
 }
 
 
-    // id, nombre, descripcion
+
+    // id, nombre
+    // ejemplo: PlayStation, PC, Xbox, Steam, Nintendo, etc
