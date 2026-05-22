@@ -3,8 +3,10 @@ package com.DUOC.JUEGOS.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import com.DUOC.JUEGOS.dto.VideojuegoResponseDTO;
+import com.DUOC.JUEGOS.dto.JuegoResponseDTO;
 import com.DUOC.JUEGOS.model.Compania;
 import com.DUOC.JUEGOS.model.Genero;
 import com.DUOC.JUEGOS.model.Plataforma;

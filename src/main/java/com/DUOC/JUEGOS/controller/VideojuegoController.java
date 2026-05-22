@@ -3,12 +3,9 @@ package com.DUOC.JUEGOS.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.DUOC.JUEGOS.dto.VideojuegoResponseDTO;
+import com.DUOC.JUEGOS.dto.JuegoResponseDTO;
 import com.DUOC.JUEGOS.service.VideojuegoService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,12 +19,12 @@ public class VideojuegoController {
 
     
     @GetMapping
-    public ResponseEntity<List<VideojuegoResponseDTO>> obtenerTodosVideojuegos() {
+    public ResponseEntity<List<JuegoResponseDTO>> obtenerTodosVideojuegos() {
         return ResponseEntity.ok(videojuegoService.obtenerTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VideojuegoResponseDTO> obtenerVideojuegoPorId(@PathVariable Long id) {
+    public ResponseEntity<JuegoResponseDTO> obtenerVideojuegoPorId(@PathVariable Long id) {
         return videojuegoService.obtenerPorId(id)
                 .map(ResponseEntity::ok)                   
                 .orElse(ResponseEntity.notFound().build()); 
