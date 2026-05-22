@@ -28,8 +28,8 @@ public class CompaniaController {
     @GetMapping("/{id}")
     public ResponseEntity<Compania> obtenerPorId(@PathVariable Long id) {
         return companiaService.obtenerPorId(id)
-                .map(ResponseEntity::ok)                   // 200 con el objeto
-                .orElse(ResponseEntity.notFound().build()); // 404 sin cuerpo
+                .map(ResponseEntity::ok)                   
+                .orElse(ResponseEntity.notFound().build()); 
     }    
 
 
@@ -38,8 +38,6 @@ public class CompaniaController {
 }
 
 
-
-// auxiliares: idem a plataforma
 
 
 

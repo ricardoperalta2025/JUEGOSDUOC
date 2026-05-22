@@ -28,8 +28,8 @@ public class GeneroController {
     @GetMapping("/{id}")
     public ResponseEntity<Genero> obtenerPorId(@PathVariable Long id) {
         return generoService.obtenerPorId(id)
-                .map(ResponseEntity::ok)                   // 200 con el objeto
-                .orElse(ResponseEntity.notFound().build()); // 404 sin cuerpo
+                .map(ResponseEntity::ok)                   
+                .orElse(ResponseEntity.notFound().build()); 
     }       
 
 
@@ -38,4 +38,3 @@ public class GeneroController {
 }
 
 
-// auxiliares: idem a plataforma

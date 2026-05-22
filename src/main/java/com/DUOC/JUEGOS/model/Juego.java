@@ -20,8 +20,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="videojuegos")
-public class Videojuego {
+@Table(name="juegos")
+public class Juego {
 
 
     @Id
@@ -38,7 +38,7 @@ public class Videojuego {
     private String sinopsis;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precio;
+    private BigDecimal precioMercado;
 
     @Min(1)
     @Max(5)
@@ -57,20 +57,6 @@ public class Videojuego {
     @JoinColumn(name = "plataforma_id", nullable = false)
     private Plataforma plataforma;
 
-
 }
 
-    // id, titulo, añoPublicacion, sinopsis, precioMercado, valoracion
-
-
-    // pendientes: genero, plataforma, compañia
-
-    /*
-    
-    @ManyToOne
-    @JoinColumn(name = "categoria_id", nullable = false)
-    private Categoria categoria;
-}
-    
-    */
 

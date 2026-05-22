@@ -11,3 +11,6 @@ public class JuegosApplication {
 	}
 
 }
+
+// para copiar y crear la bd en laragon y testear
+// db_videojuegos_vm

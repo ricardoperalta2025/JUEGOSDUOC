@@ -28,6 +28,3 @@ public class Plataforma {
 }
 
 
-
-    // id, nombre
-    // ejemplo: PlayStation, PC, Xbox, Steam, Nintendo, etc

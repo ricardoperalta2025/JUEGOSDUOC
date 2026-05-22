@@ -34,4 +34,3 @@ public class Compania {
 }
 
 
-    // id, nombre, pais, sitioWeb
