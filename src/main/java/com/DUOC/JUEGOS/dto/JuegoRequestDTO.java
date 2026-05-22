@@ -1,8 +1,6 @@
 package com.DUOC.JUEGOS.dto;
 
-import com.DUOC.JUEGOS.model.Compania;
-import com.DUOC.JUEGOS.model.Genero;
-import com.DUOC.JUEGOS.model.Plataforma;
+import java.math.BigDecimal;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -22,18 +20,21 @@ public class JuegoRequestDTO {
     
     @NotBlank(message = "El juego debe tener sinopsis")
     private String sinopsis;
+
+    @NotBlank(message = "El juego debe tener sinopsis")
+    private BigDecimal precioMercado;
     
     @NotBlank(message = "El juego debe tener valoracion")
     private int valoracion;
     
     @NotBlank(message = "El juego debe tener idGenero")
-    private Genero idGenero;
+    private Long generoId;
     
     @NotBlank(message = "El juego debe tener idGenero")
-    private  Plataforma plataformaId;
+    private  Long plataformaId;
     
     @NotBlank(message = "El juego debe tener idGenero")
-    private Compania companiaId;
+    private Long companiaId;
     
     
 }
