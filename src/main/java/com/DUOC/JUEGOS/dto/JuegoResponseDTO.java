@@ -13,7 +13,7 @@ public class JuegoResponseDTO {
     private Long id;
     private String titulo;
     private int anioPublicacion;
-    private BigDecimal precioMercado;
+    private BigDecimal precio;
     private int valoracion;
     private String companiaNombre;
     private String generoNombre;

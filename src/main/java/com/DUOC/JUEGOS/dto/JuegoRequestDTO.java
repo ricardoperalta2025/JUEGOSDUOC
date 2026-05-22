@@ -22,7 +22,7 @@ public class JuegoRequestDTO {
     private String sinopsis;
 
     @NotBlank(message = "El juego debe tener sinopsis")
-    private BigDecimal precioMercado;
+    private BigDecimal precio;
     
     @NotBlank(message = "El juego debe tener valoracion")
     private int valoracion;

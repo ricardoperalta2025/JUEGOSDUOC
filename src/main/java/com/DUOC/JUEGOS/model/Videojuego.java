@@ -38,7 +38,7 @@ public class Videojuego {
     private String sinopsis;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precioMercado;
+    private BigDecimal precio;
 
     @Min(1)
     @Max(5)

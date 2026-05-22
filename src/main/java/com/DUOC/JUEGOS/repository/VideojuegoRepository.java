@@ -15,16 +15,16 @@ import com.DUOC.JUEGOS.model.Videojuego;
 
 public interface VideojuegoRepository extends JpaRepository<Videojuego, Long>{
     List<JuegoResponseDTO> findByTituloContainingIgnoreCase(String titulo);
-    List<JuegoResponseDTO> findByPrecioMercadoLessThan(Double precio);
+    List<JuegoResponseDTO> findByPrecioLessThan(Double precio);
     List<JuegoResponseDTO> findByCompania(Compania compania);
     List<JuegoResponseDTO> findByPlataforma(Plataforma plataforma);
     List<JuegoResponseDTO> findByGenero(Genero genero);
     //Buscar por id de Genero
-    @Query("SELECT v FROM Videojuego WHERE v.genero.id = :generoId")
+    @Query("SELECT v FROM  Videojuego v WHERE v.genero.id = :generoId")
     List<JuegoResponseDTO> findByGeneroId(@Param("generoId") Long generoId);
 
     //Buscar por id de compania
-    @Query("SELECT v FROM Videojuego WHERE v.compania.id =:companiaId")
+    @Query("SELECT v FROM Videojuego v WHERE v.compania.id =:companiaId")
     List<JuegoResponseDTO> findByCompaniaId(@Param("companiaId") Long companiaId);
 
 

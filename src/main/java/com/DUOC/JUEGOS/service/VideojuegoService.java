@@ -26,7 +26,7 @@ public class VideojuegoService {
             videojuego.getId(),
             videojuego.getTitulo(),
             videojuego.getAnioPublicacion(),
-            videojuego.getPrecioMercado(),
+            videojuego.getPrecio(),
             videojuego.getValoracion(),
             videojuego.getCompania().getNombre(),
             videojuego.getGenero().getNombre(),
@@ -53,7 +53,7 @@ public class VideojuegoService {
             dto.getTitulo(),
             dto.getAnioPublicacion(),
             dto.getSinopsis(),
-            dto.getPrecioMercado(),
+            dto.getPrecio(),
             dto.getValoracion(),
             compania, 
             genero, 
@@ -69,7 +69,7 @@ public class VideojuegoService {
             Plataforma plataforma=plataformaRepository.findById(dto.getPlataformaId()).orElseThrow();
             existente.setTitulo(dto.getTitulo());
             existente.setAnioPublicacion(dto.getAnioPublicacion());
-            existente.setPrecioMercado(dto.getPrecioMercado());
+            existente.setPrecio(dto.getPrecio());
             existente.setCompania(compania);
             existente.setPlataforma(plataforma);
             existente.setGenero(genero);
@@ -84,7 +84,7 @@ public class VideojuegoService {
     }
     //Buscar por precio menor a 
     public List<JuegoResponseDTO> buscarPorPrecioMenor(Double precio){
-        return videojuegoRepository.findByPrecioMercadoLessThan(precio);
+        return videojuegoRepository.findByPrecioLessThan(precio);
     }
     //Buscar por compania id
     public List<JuegoResponseDTO> buscarPorCompania(Long companiaId){
