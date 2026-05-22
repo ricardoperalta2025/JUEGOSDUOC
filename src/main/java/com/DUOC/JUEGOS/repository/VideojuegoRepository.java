@@ -1,16 +1,14 @@
 package com.DUOC.JUEGOS.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.DUOC.JUEGOS.dto.VideojuegoResponseDTO;
 import com.DUOC.JUEGOS.model.Compania;
 import com.DUOC.JUEGOS.model.Genero;
 import com.DUOC.JUEGOS.model.Plataforma;
 import com.DUOC.JUEGOS.model.Videojuego;
-import com.DUOC.JUEGOS.dto.JuegoResponseDTO;
-
-import java.util.List;
 
 
 public interface VideojuegoRepository extends JpaRepository<Videojuego, Long>{
