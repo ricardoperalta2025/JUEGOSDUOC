@@ -231,6 +231,11 @@ public class JuegoController {
         return ResponseEntity.ok(juegoService.ordenarPorTituloDesc());
     }
 
+    //Ordenar por valoracion descendiente: get http://localhost:8080/api/juegos/ordenar-valoracion
+    @GetMapping("/ordenar-valoracion")
+    public ResponseEntity<List<JuegoResponseDTO>>  ordenarPorValoracionDesc(){
+        return ResponseEntity.ok(juegoService.ordenarPorValoracion());
+    }
 }
 
 
