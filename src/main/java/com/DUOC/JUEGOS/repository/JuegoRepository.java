@@ -52,6 +52,13 @@ public interface JuegoRepository extends JpaRepository<Juego, Long>{
     @Query("SELECT j FROM Juego j WHERE j.precioMercado <= :precioMax ORDER BY j.precioMercado DESC")
     List<Juego> findJuegoBajoPrecio(@Param("precioMax") BigDecimal precio);
 
+    //Ordenar por valoracion descendiente
+    @Query(
+        value= "SELECT * from juegos ORDER BY valoracion DESC ",
+        nativeQuery= true
+    )
+    List<Juego> OrdenarJuegoPorValoracion();
+    
     //Ordenar por precio Mayor a menor
     @Query(
         value="SELECT * FROM juegos ORDER BY precio_mercado DESC ",

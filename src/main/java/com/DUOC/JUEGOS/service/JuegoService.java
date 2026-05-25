@@ -154,6 +154,10 @@ public class JuegoService {
         return juegoRepository.findAllByOrderByTituloAsc()
         .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
+    //Ordenar por valoracion desc
+    public List<JuegoResponseDTO> ordenarPorValoracion(){
+        return juegoRepository.OrdenarJuegoPorValoracion().stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
 
     // Ordenar títulos Z-A
     public List<JuegoResponseDTO> ordenarPorTituloDesc(){

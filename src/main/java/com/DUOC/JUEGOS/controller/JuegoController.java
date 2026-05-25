@@ -143,6 +143,7 @@ public class JuegoController {
     
     */
 
+
     // delete http://localhost:8080/api/juegos/eliminar/1
     @DeleteMapping("/eliminar/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
@@ -159,6 +160,7 @@ public class JuegoController {
     http://localhost:8080/api/juegos/eliminar/2
 
 */
+
 
     // compañia
     //Buscar por compania id: get http://localhost:8080/api/juegos/compania/1  
