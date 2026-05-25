@@ -29,5 +29,4 @@ public class PlataformaService {
         return plataformaRepository.findById(id);
     }
 
-
 }

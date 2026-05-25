@@ -32,8 +32,6 @@ public class GeneroController {
                 .orElse(ResponseEntity.notFound().build()); 
     }       
 
-
-
     
 }
 

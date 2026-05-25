@@ -27,6 +27,4 @@ public class GeneroService {
         return generoRepository.findById(id);
     }
 
-
-
 }

@@ -32,8 +32,6 @@ public class CompaniaController {
                 .orElse(ResponseEntity.notFound().build()); 
     }    
 
-
-
     
 }
 

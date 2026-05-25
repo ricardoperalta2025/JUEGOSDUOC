@@ -27,6 +27,15 @@ public interface JuegoRepository extends JpaRepository<Juego, Long>{
     List<Juego> findAllByOrderByTituloAsc();
     // Ordenar de la Z a la A (Descendente)
     List<Juego> findAllByOrderByTituloDesc();
+    // ordenar por valoraacion descendiente 
+    List<Juego> findAllByOrderByValoracionDesc();
+    // ordenar por valoracion ascendente
+    List<Juego> findAllByOrderByValoracionAsc();
+    // ordenar por año de publicacion descendiente
+    List<Juego> findAllByOrderByAnioPublicacionDesc();
+    // ordenar por año de publicacion ascendente
+    List<Juego> findAllByOrderByAnioPublicacionAsc();
+
     //Buscar por id de Genero
     @Query("SELECT j FROM Juego j WHERE j.genero.id = :generoId")
     List<Juego> findByGeneroId(@Param("generoId") Long generoId);
@@ -50,4 +59,5 @@ public interface JuegoRepository extends JpaRepository<Juego, Long>{
     )
     List<Juego> OrdenarVideojuegos();
     
+
 }

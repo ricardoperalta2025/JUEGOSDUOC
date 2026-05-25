@@ -30,7 +30,6 @@ public class Compania {
     @Column(nullable = true, length = 200)
     private String sitioWeb;
 
-    
 }
 
 

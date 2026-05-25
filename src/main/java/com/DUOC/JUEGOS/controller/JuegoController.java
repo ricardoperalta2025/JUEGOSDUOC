@@ -28,6 +28,8 @@ public class JuegoController {
 
     private final JuegoService juegoService;
 
+    // get, post, put, delete, juegos en general
+
     // get  http://localhost:8080/api/juegos
     @GetMapping
     public ResponseEntity<List<JuegoResponseDTO>> obtenerTodosVideojuegos() {
@@ -126,21 +128,20 @@ public class JuegoController {
     "plataformaId": 2
     }
 
-    http://localhost:8080/api/juegos/53
+    http://localhost:8080/api/juegos/15
 
-    {
-    "titulo": "Super Smash Bros. (Original)",
-    "anioPublicacion": 1999,
-    "sinopsis": "El legendario inicio de la saga de lucha cruzada donde las estrellas de Nintendo se enfrentan por primera vez.",
-    "precioMercado": 45.50,
-    "valoracion": 4,
-    "companiaId": 4,
-    "generoId": 9,
-    "plataformaId": 7
-    }
+{
+    "titulo": "Klifur (Definitive Edition)",
+    "anioPublicacion": 2024,
+    "sinopsis": "Juego de rompecabezas minimalista basado en físicas de escalada. Ahora incluye nuevos niveles de desafío extremo.",
+    "precioMercado": 2.99,
+    "valoracion": 5,
+    "companiaId": 8, 
+    "generoId": 11,
+    "plataformaId": 1 
+}
     
     */
-
 
     // delete http://localhost:8080/api/juegos/eliminar/1
     @DeleteMapping("/eliminar/{id}")
@@ -151,26 +152,15 @@ public class JuegoController {
     }
 
 /*
+    para testear delete en postman:
+
     http://localhost:8080/api/juegos/eliminar/100
     http://localhost:8080/api/juegos/eliminar/5
     http://localhost:8080/api/juegos/eliminar/2
 
 */
 
-
-    //Buscar por titulo get http://localhost:8080/api/juegos/titulo?titulo=zelda
-    @GetMapping("/titulo")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorTitulo(@RequestParam String titulo) {
-        return ResponseEntity.ok(juegoService.buscarPorTitulo(titulo));
-    }
-
-  
-    //Buscar por precio menor a: get http://localhost:8080/api/juegos/precio-menor?precio=50
-    @GetMapping("/precio-menor")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorPrecioMenor(@RequestParam BigDecimal precio) {
-        return ResponseEntity.ok(juegoService.buscarPorPrecioMenor(precio));
-    }   
-    
+    // compañia
     //Buscar por compania id: get http://localhost:8080/api/juegos/compania/1  
     @GetMapping("/compania/{companiaId}")
     public ResponseEntity<List<JuegoResponseDTO>> buscarPorCompania(@PathVariable Long companiaId) {
@@ -183,6 +173,7 @@ public class JuegoController {
         return ResponseEntity.ok(juegoService.buscarPorNombreCompania(nombre));
     }
 
+    // plataforma
     //Buscar por plataforma id: get http://localhost:8080/api/juegos/plataforma/1
     @GetMapping("/plataforma/{plataformaId}")
     public ResponseEntity<List<JuegoResponseDTO>> buscarPorPlataforma(@PathVariable Long plataformaId) {
@@ -195,17 +186,25 @@ public class JuegoController {
         return ResponseEntity.ok(juegoService.buscarPorNombrePlataforma(nombre));
     }
 
-    //Buscar por genero id: get http://localhost:8080/api/juegos/genero/1   
+    // género
+    //Buscar por género id: get http://localhost:8080/api/juegos/genero/1   
     @GetMapping("/genero/{generoId}")
     public ResponseEntity<List<JuegoResponseDTO>> buscarPorGenero(@PathVariable Long generoId) {
         return ResponseEntity.ok(juegoService.buscarPorGenero(generoId));
     }
 
-    // buscar por genero nombre: get http://localhost:8080/api/juegos/genero?nombre=moba
+    // buscar por género nombre: get http://localhost:8080/api/juegos/genero?nombre=moba
     @GetMapping("/genero")
     public ResponseEntity<List<JuegoResponseDTO>> buscarPorNombreGenero(@RequestParam String nombre) {
         return ResponseEntity.ok(juegoService.buscarPorNombreGenero(nombre));
     }
+
+    //precio
+    //Buscar por precio menor a: get http://localhost:8080/api/juegos/precio-menor?precio=50
+    @GetMapping("/precio-menor")
+    public ResponseEntity<List<JuegoResponseDTO>> buscarPorPrecioMenor(@RequestParam BigDecimal precio) {
+        return ResponseEntity.ok(juegoService.buscarPorPrecioMenor(precio));
+    }   
 
     //Buscar por precio menor a descendiente: get http://localhost:8080/api/juegos/precio-menor-ordenado?precio=50
     @GetMapping("/precio-menor-ordenado")
@@ -218,9 +217,10 @@ public class JuegoController {
     public ResponseEntity<List<JuegoResponseDTO>> ordenarPorPrecio() {
         return ResponseEntity.ok(juegoService.ordenarPorPrecio());
     }   
-
-    // orden alfabeto acendente A-Z: get http://localhost:8080/api/juegos/ordenar-titulo-acs
-    @GetMapping("/ordenar-titulo-acs")
+    
+    //título juegos
+    // orden alfabeto acendente A-Z: get http://localhost:8080/api/juegos/ordenar-titulo-asc
+    @GetMapping("/ordenar-titulo-asc")
     public ResponseEntity<List<JuegoResponseDTO>> ordenarPorTituloAsc() {
         return ResponseEntity.ok(juegoService.ordenarPorTituloAsc());
     }   
@@ -230,6 +230,39 @@ public class JuegoController {
     public ResponseEntity<List<JuegoResponseDTO>> ordenarPorTituloDesc() {
         return ResponseEntity.ok(juegoService.ordenarPorTituloDesc());
     }
+
+    //Buscar por titulo get http://localhost:8080/api/juegos/titulo?titulo=zelda
+    @GetMapping("/titulo")
+    public ResponseEntity<List<JuegoResponseDTO>> buscarPorTitulo(@RequestParam String titulo) {
+        return ResponseEntity.ok(juegoService.buscarPorTitulo(titulo));
+    }
+
+    //valoración
+    // orden por valoracion descendiente: get http://localhost:8080/api/juegos/ordenar-valoracion-desc      
+    @GetMapping("/ordenar-valoracion-desc")
+    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorValoracionDesc() {      
+        return ResponseEntity.ok(juegoService.ordenarPorValoracionDesc());
+    }   
+
+    // orden por valoracion ascendente: get http://localhost:8080/api/juegos/ordenar-valoracion-asc     
+    @GetMapping("/ordenar-valoracion-asc")
+    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorValoracionAsc() {   
+        return ResponseEntity.ok(juegoService.ordenarPorValoracionAsc());
+    }       
+
+    //año publicación
+    // orden por año de publicacion descendiente: get http://localhost:8080/api/juegos/ordenar-anio-desc    
+    @GetMapping("/ordenar-anio-desc")
+    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorAnioPublicacionDesc() {     
+        return ResponseEntity.ok(juegoService.ordenarPorAnioPublicacionDesc());
+    }
+
+    // orden por año de publicacion ascendente: get http://localhost:8080/api/juegos/ordenar-anio-asc       
+    @GetMapping("/ordenar-anio-asc")
+    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorAnioPublicacionAsc() {   
+        return ResponseEntity.ok(juegoService.ordenarPorAnioPublicacionAsc());
+    }   
+
 
 }
 
