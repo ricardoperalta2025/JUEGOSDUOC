@@ -24,7 +24,6 @@ public class Plataforma {
     @Column(nullable = false, length = 100)
     private String nombre;
 
-
 }
 
 

@@ -164,7 +164,27 @@ public class JuegoService {
         return juegoRepository.findAllByOrderByTituloDesc()
         .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
+
+    // ordenar por valoracion descendiente  
+    public List<JuegoResponseDTO> ordenarPorValoracionDesc(){
+        return juegoRepository.findAllByOrderByValoracionDesc()
+        .stream().map(this::mapToDTO).collect(Collectors.toList());
+    }   
+    // ordenar por valoracion ascendente 
+    public List<JuegoResponseDTO> ordenarPorValoracionAsc(){
+        return juegoRepository.findAllByOrderByValoracionAsc()
+        .stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+    // ordenaar por año de ppublicacion descendiente    
+    public List<JuegoResponseDTO> ordenarPorAnioPublicacionDesc(){
+        return juegoRepository.findAllByOrderByAnioPublicacionDesc()
+        .stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+    // ordenar por año de publicacion ascendente
+    public List<JuegoResponseDTO> ordenarPorAnioPublicacionAsc(){
+        return juegoRepository.findAllByOrderByAnioPublicacionAsc()
+        .stream().map(this::mapToDTO).collect(Collectors.toList());
+    }   
+    
 }
 
-
-  // faltaba aagregar .stream().map(this::mapToDTO).collect(Collectors.toList()) al final de los métodos

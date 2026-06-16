@@ -306,15 +306,4 @@ public class DataInitializer implements CommandLineRunner {
 
 }
 
-
 //db_videojuegos_vm
-
-
-        /*
-        
-                Categoria prog = categoriaRepository.save(
-                new Categoria(null, "Programación", "Libros de lenguajes y frameworks"));
-        Categoria bd = categoriaRepository.save(
-                new Categoria(null, "Bases de Datos", "SQL, NoSQL y diseño de datos"));
-        
-        */
