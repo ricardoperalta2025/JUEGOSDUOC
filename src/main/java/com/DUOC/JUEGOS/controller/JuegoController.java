@@ -1,8 +1,13 @@
 package com.DUOC.JUEGOS.controller;
-
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.MediaTypes;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +19,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.DUOC.JUEGOS.assembler.JuegoModelAssembler;
 import com.DUOC.JUEGOS.dto.JuegoRequestDTO;
 import com.DUOC.JUEGOS.dto.JuegoResponseDTO;
 import com.DUOC.JUEGOS.service.JuegoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,38 +39,78 @@ import lombok.RequiredArgsConstructor;
 public class JuegoController {
 
     private final JuegoService juegoService;
+    private final JuegoModelAssembler juegoModelAssembler;
 
     // get, post, put, delete, juegos en general
 
     // get  http://localhost:8080/api/juegos
-    @GetMapping
+    @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Obtener todos los videojuegos", description = "Devuelve una lista de todos los videojuegos disponibles en la base de datos.")
-    public ResponseEntity<List<JuegoResponseDTO>> obtenerTodosVideojuegos() {
-        return ResponseEntity.ok(juegoService.obtenerTodos());
+    @ApiResponse(responseCode = "200", description = "Lista de videojuegos recuperada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> obtenerTodosVideojuegos() {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.obtenerTodos().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).obtenerTodosVideojuegos()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
+    /*
+    
+
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> obtenerTodosVideojuegos() {
+        // 1. Obtenemos la lista normal y la pasamos por el assembler
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.obtenerTodos().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        // 2. Envolvemos la lista completa en un CollectionModel y le damos un link a sí misma
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).obtenerTodosVideojuegos()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
+    
+    
+    */
 
     // get  http://localhost:8080/api/juegos/52
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Obtener un videojuego por ID", description = "Devuelve un videojuego específico según su ID.")
-    public ResponseEntity<JuegoResponseDTO> obtenerVideojuegoPorId(@PathVariable Long id) {
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Videojuego encontrado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Videojuego no encontrado en la base de datos")
+    })      
+    public ResponseEntity<EntityModel<JuegoResponseDTO>> obtenerVideojuegoPorId(@PathVariable Long id) {
         return juegoService.obtenerPorId(id)
+                .map(juegoModelAssembler::toModel)                   
                 .map(ResponseEntity::ok)                   
                 .orElse(ResponseEntity.notFound().build()); 
-    }   
-
-    //post http://localhost:8080/api/juegos
-    @PostMapping
-    @Operation(summary = "Crear un nuevo videojuego", description = "Permite crear un nuevo videojuego proporcionando los detalles necesarios en el cuerpo de la solicitud.")
-    public ResponseEntity<JuegoResponseDTO> guardar(@Valid @RequestBody JuegoRequestDTO juego) {
-        return ResponseEntity.status(201).body(juegoService.guardar(juego));
     }
 
+//post http://localhost:8080/api/juegos
+    @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
+    @Operation(summary = "Crear un nuevo videojuego", description = "Permite crear un nuevo videojuego proporcionando los detalles necesarios en el cuerpo de la solicitud.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Videojuego creado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de solicitud inválidos (Error de validación)")
+    })
+    public ResponseEntity<EntityModel<JuegoResponseDTO>> guardar(@Valid @RequestBody JuegoRequestDTO juego) {
+        JuegoResponseDTO nuevoJuego = juegoService.guardar(juego);
+        EntityModel<JuegoResponseDTO> entityModel = juegoModelAssembler.toModel(nuevoJuego);
+        
+        return ResponseEntity
+                .created(linkTo(methodOn(JuegoController.class).obtenerVideojuegoPorId(nuevoJuego.getId())).toUri())
+                .body(entityModel);
+    }
     /*
     
     para testear post en postman:
 
-    {
+{
     "titulo": "Resident Evil Village",
     "anioPublicacion": 2021,
     "sinopsis": "Ethan Winters se enfrenta a horrores en un oscuro y nevado pueblo europeo.",
@@ -71,7 +119,7 @@ public class JuegoController {
     "companiaId": 12,
     "generoId": 6,
     "plataformaId": 2
-    }
+}
 
     {
     "titulo": "Super Mario Bros. Wonder",
@@ -98,10 +146,16 @@ public class JuegoController {
     */
 
     // put http://localhost:8080/api/juegos/1
-    @PutMapping("/{id}")            
+    @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)            
     @Operation(summary = "Actualizar un videojuego existente", description = "Permite actualizar los detalles de un videojuego existente proporcionando su ID y los nuevos datos en el cuerpo de la solicitud.")
-    public ResponseEntity<JuegoResponseDTO> actualizar(@PathVariable Long id, @Valid @RequestBody JuegoRequestDTO dto) {
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Videojuego actualizado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de solicitud inválidos (Error de validación)"),
+        @ApiResponse(responseCode = "404", description = "Videojuego no encontrado para actualizar")
+    })
+    public ResponseEntity<EntityModel<JuegoResponseDTO>> actualizar(@PathVariable Long id, @Valid @RequestBody JuegoRequestDTO dto) {
         return juegoService.actualizar(id, dto)             
+                .map(juegoModelAssembler::toModel)                   
                 .map(ResponseEntity::ok)                   
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -153,14 +207,17 @@ public class JuegoController {
 
 
     // delete http://localhost:8080/api/juegos/eliminar/1
-    @DeleteMapping("/eliminar/{id}")
+    @DeleteMapping(value = "/eliminar/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Eliminar un videojuego por ID", description = "Permite eliminar un videojuego específico según su ID.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Videojuego eliminado exitosamente (Sin contenido de retorno)"),
+        @ApiResponse(responseCode = "404", description = "Videojuego no encontrado para eliminar")
+    })
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         if (juegoService.obtenerPorId(id).isEmpty()) return ResponseEntity.notFound().build();
         juegoService.eliminar(id);
         return ResponseEntity.noContent().build();      
     }
-
 /*
     para testear delete en postman:
 
@@ -173,122 +230,248 @@ public class JuegoController {
 
     // compañia
     //Buscar por compania id: get http://localhost:8080/api/juegos/compania/1  
-    @GetMapping("/compania/{companiaId}")
+    @GetMapping(value = "/compania/{companiaId}", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por compañía", description = "Devuelve una lista de videojuegos asociados a una compañía específica.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorCompania(@PathVariable Long companiaId) {
-        return ResponseEntity.ok(juegoService.buscarPorCompania(companiaId));
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorCompania(@PathVariable Long companiaId) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorCompania(companiaId).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorCompania(companiaId)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
  
     // buscar por compania nombre: get http://localhost:8080/api/juegos/compania?nombre=capcom
-    @GetMapping("/compania")
+    @GetMapping(value = "/compania", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por nombre de compañía", description = "Devuelve una lista de videojuegos asociados a una compañía específica.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorNombreCompania(@RequestParam String nombre) {
-        return ResponseEntity.ok(juegoService.buscarPorNombreCompania(nombre));
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorNombreCompania(@RequestParam String nombre) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorNombreCompania(nombre).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorNombreCompania(nombre)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     // plataforma
     //Buscar por plataforma id: get http://localhost:8080/api/juegos/plataforma/1
-    @GetMapping("/plataforma/{plataformaId}")
+    @GetMapping(value = "/plataforma/{plataformaId}", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por plataforma", description = "Devuelve una lista de videojuegos asociados a una plataforma específica mediante el id de la plataforma.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorPlataforma(@PathVariable Long plataformaId) {
-        return ResponseEntity.ok(juegoService.buscarPorPlataforma(plataformaId));
-    }   
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorPlataforma(@PathVariable Long plataformaId) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorPlataforma(plataformaId).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorPlataforma(plataformaId)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    } 
 
     // buscar por plataforma nombre: get http://localhost:8080/api/juegos/plataforma?nombre=pc  
-    @GetMapping("/plataforma")  
+    @GetMapping(value = "/plataforma", produces = MediaTypes.HAL_JSON_VALUE)  
     @Operation(summary = "Buscar videojuegos por nombre de plataforma", description = "Devuelve una lista de videojuegos asociados a una plataforma específica.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorNombrePlataforma(@RequestParam String nombre) {
-        return ResponseEntity.ok(juegoService.buscarPorNombrePlataforma(nombre));
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorNombrePlataforma(@RequestParam String nombre) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorNombrePlataforma(nombre).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorNombrePlataforma(nombre)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     // género
     //Buscar por género id: get http://localhost:8080/api/juegos/genero/1   
-    @GetMapping("/genero/{generoId}")
+    @GetMapping(value = "/genero/{generoId}", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por género", description = "Devuelve una lista de videojuegos asociados a un género específico mediante el id del género.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorGenero(@PathVariable Long generoId) {
-        return ResponseEntity.ok(juegoService.buscarPorGenero(generoId));
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorGenero(@PathVariable Long generoId) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorGenero(generoId).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorGenero(generoId)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     // buscar por género nombre: get http://localhost:8080/api/juegos/genero?nombre=moba
-    @GetMapping("/genero")
+    @GetMapping(value = "/genero", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por nombre de género", description = "Devuelve una lista de videojuegos asociados a un género específico.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorNombreGenero(@RequestParam String nombre) {
-        return ResponseEntity.ok(juegoService.buscarPorNombreGenero(nombre));
-    }
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente") 
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorNombreGenero(@RequestParam String nombre) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorNombreGenero(nombre).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
 
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorNombreGenero(nombre)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
     //precio
     //Buscar por precio menor a: get http://localhost:8080/api/juegos/precio-menor?precio=50
-    @GetMapping("/precio-menor")
+    @GetMapping(value = "/precio-menor", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por precio menor al solicitado por parametro", description = "Devuelve una lista de videojuegos con precio menor al especificado.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorPrecioMenor(@RequestParam BigDecimal precio) {
-        return ResponseEntity.ok(juegoService.buscarPorPrecioMenor(precio));
-    }   
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorPrecioMenor(@RequestParam BigDecimal precio) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorPrecioMenor(precio).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
 
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorPrecioMenor(precio)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
     //Buscar por precio menor a descendiente: get http://localhost:8080/api/juegos/precio-menor-ordenado?precio=50
-    @GetMapping("/precio-menor-ordenado")
+    @GetMapping(value = "/precio-menor-ordenado", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por precio menor al solicitado por parametro y ordenados", description = "Devuelve una lista de videojuegos con precio menor al especificado y ordenados.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorPrecioOrdenado(@RequestParam BigDecimal precio) {
-        return ResponseEntity.ok(juegoService.buscarPorPrecioOrdenado(precio));
-    }       
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorPrecioOrdenado(@RequestParam BigDecimal precio) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorPrecioOrdenado(precio).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorPrecioOrdenado(precio)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }     
 
     // Ordenar en precio descendiente: get http://localhost:8080/api/juegos/ordenar-precio
-    @GetMapping("/ordenar-precio")
+    @GetMapping(value = "/ordenar-precio", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por precio", description = "Devuelve una lista de videojuegos ordenados por precio de forma descendente.")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorPrecio() {
-        return ResponseEntity.ok(juegoService.ordenarPorPrecio());
-    }   
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorPrecio() {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorPrecio().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorPrecio()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
     
     //título juegos
     // orden alfabeto acendente A-Z: get http://localhost:8080/api/juegos/ordenar-titulo-asc
-    @GetMapping("/ordenar-titulo-asc")
+    @GetMapping(value = "/ordenar-titulo-asc", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por título ascendente", description = "Devuelve una lista de videojuegos ordenados por título de forma ascendente (A-Z).")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorTituloAsc() {
-        return ResponseEntity.ok(juegoService.ordenarPorTituloAsc());
-    }   
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorTituloAsc() {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorTituloAsc().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorTituloAsc()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    } 
 
     // orden alfabeto descendente Z-A: get http://localhost:8080/api/juegos/ordenar-titulo-desc
-    @GetMapping("/ordenar-titulo-desc")
+    @GetMapping(value = "/ordenar-titulo-desc", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por título descendente", description = "Devuelve una lista de videojuegos ordenados por título de forma descendente (Z-A).")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorTituloDesc() {
-        return ResponseEntity.ok(juegoService.ordenarPorTituloDesc());
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorTituloDesc() {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorTituloDesc().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorTituloDesc()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     //Buscar por titulo get http://localhost:8080/api/juegos/titulo?titulo=zelda
-    @GetMapping("/titulo")
+    @GetMapping(value = "/titulo", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Buscar videojuegos por título", description = "Devuelve una lista de videojuegos que coinciden con el título especificado.")
-    public ResponseEntity<List<JuegoResponseDTO>> buscarPorTitulo(@RequestParam String titulo) {
-        return ResponseEntity.ok(juegoService.buscarPorTitulo(titulo));
+    @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> buscarPorTitulo(@RequestParam String titulo) {
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.buscarPorTitulo(titulo).stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).buscarPorTitulo(titulo)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     //valoración
     // orden por valoracion descendiente: get http://localhost:8080/api/juegos/ordenar-valoracion-desc      
-    @GetMapping("/ordenar-valoracion-desc")
+    @GetMapping(value = "/ordenar-valoracion-desc", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por valoración descendente", description = "Devuelve una lista de videojuegos ordenados por valoración de forma descendente.")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorValoracionDesc() {      
-        return ResponseEntity.ok(juegoService.ordenarPorValoracionDesc());
-    }   
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorValoracionDesc() {      
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorValoracionDesc().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorValoracionDesc()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
 
     // orden por valoracion ascendente: get http://localhost:8080/api/juegos/ordenar-valoracion-asc     
-    @GetMapping("/ordenar-valoracion-asc")
+    @GetMapping(value = "/ordenar-valoracion-asc", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por valoración ascendente", description = "Devuelve una lista de videojuegos ordenados por valoración de forma ascendente.")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorValoracionAsc() {   
-        return ResponseEntity.ok(juegoService.ordenarPorValoracionAsc());
-    }       
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorValoracionAsc() {   
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorValoracionAsc().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorValoracionAsc()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }    
 
     //año publicación
     // orden por año de publicacion descendiente: get http://localhost:8080/api/juegos/ordenar-anio-desc    
-    @GetMapping("/ordenar-anio-desc")
+    @GetMapping(value = "/ordenar-anio-desc", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por año de publicación descendente", description = "Devuelve una lista de videojuegos ordenados por año de publicación de forma descendente.")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorAnioPublicacionDesc() {     
-        return ResponseEntity.ok(juegoService.ordenarPorAnioPublicacionDesc());
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorAnioPublicacionDesc() {     
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorAnioPublicacionDesc().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorAnioPublicacionDesc()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     // orden por año de publicacion ascendente: get http://localhost:8080/api/juegos/ordenar-anio-asc       
-    @GetMapping("/ordenar-anio-asc")
+    @GetMapping(value = "/ordenar-anio-asc", produces = MediaTypes.HAL_JSON_VALUE)
     @Operation(summary = "Ordenar videojuegos por año de publicación ascendente", description = "Devuelve una lista de videojuegos ordenados por año de publicación de forma ascendente.")
-    public ResponseEntity<List<JuegoResponseDTO>> ordenarPorAnioPublicacionAsc() {   
-        return ResponseEntity.ok(juegoService.ordenarPorAnioPublicacionAsc());
-    }   
+    @ApiResponse(responseCode = "200", description = "Ordenamiento realizado exitosamente")
+    public ResponseEntity<CollectionModel<EntityModel<JuegoResponseDTO>>> ordenarPorAnioPublicacionAsc() {   
+        List<EntityModel<JuegoResponseDTO>> juegos = juegoService.ordenarPorAnioPublicacionAsc().stream()
+                .map(juegoModelAssembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<JuegoResponseDTO>> collection = CollectionModel.of(juegos,
+                linkTo(methodOn(JuegoController.class).ordenarPorAnioPublicacionAsc()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
 
 
 }
