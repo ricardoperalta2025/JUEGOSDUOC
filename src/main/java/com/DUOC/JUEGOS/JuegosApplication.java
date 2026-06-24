@@ -14,4 +14,4 @@ public class JuegosApplication {
 
 // para copiar y crear la bd en laragon y testear
 // db_videojuegos_vm
-// http://localhost:8080/swagger-ui/index.html
+// http://localhost:8080/doc/swagger-ui.html
