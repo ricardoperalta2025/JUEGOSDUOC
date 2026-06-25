@@ -7,6 +7,7 @@ Este proyecto comenzó con la idea de desarrollar el backend para una plataforma
 El sistema gestiona toda la información de un catálogo de videojuegos (nombre, año, sinopsis, precio, valoración), almacenando los datos de manera persistente en una base de datos relacional MySQL a través de Spring Data JPA. Además, implementa patrones profesionales de descubrimiento de servicios, enrutamiento, pruebas unitarias y documentación viva.
 
 👥 Integrantes del Equipo
+
 Nicolás Aballais
 
 Ricardo Peralta
